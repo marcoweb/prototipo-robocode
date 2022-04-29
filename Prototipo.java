@@ -10,7 +10,7 @@ import static robocode.util.Utils.normalRelativeAngleDegrees;
  */
 public class Prototipo extends AdvancedRobot
 {
-
+	// Cria uma enumeração para indicar a orientação do robô
 	private enum DirectionEnum {
 		TO_TOP("TO_TOP", 0),
 		TO_RIGHT("TO_RIGHT", 90),
@@ -27,20 +27,24 @@ public class Prototipo extends AdvancedRobot
 		}
 	}
 	
+	// Variáveis que definirão as bordas da arena
 	private double topLine;
 	private double bottonLine;
 	private double leftLine;
 	private double rightLine;
+	// Variável que armazena a orientação do robô e sua distância para a borda à frente
 	private DirectionEnum botDirection;
 	
+	// Altera a orientação do robô
 	public void changeDirection() {
-		
+		// Vetor que contará as disâncias para cada borda da arena
 		DirectionEnum[] directions = {DirectionEnum.TO_TOP, DirectionEnum.TO_BOTTON, DirectionEnum.TO_LEFT, DirectionEnum.TO_RIGHT};
 		directions[0].distance = this.topLine - getY();
 		directions[1].distance = getY() - this.bottonLine;
 		directions[2].distance = getX() - this.leftLine;
 		directions[3].distance = this.rightLine - getX();
 		
+		// Ordena o vetor com base nas distâncias
 		for(int index = 0;index < directions.length - 1;index++) {
 			if(directions[index].distance > directions[index + 1].distance) {
 				DirectionEnum temp = directions[index];
@@ -49,32 +53,35 @@ public class Prototipo extends AdvancedRobot
 				index = -1;
 			}
 		}
-		
+		// Define a próxima orientação do robô
 		for(int index = 0;index < directions.length;index++) {
-			out.println(directions[index].direction + " : " + directions[index].distance);
-		}
-		
-		for(int index = 0;index < directions.length;index++) {
+			// Verifica se a distância para esta orientação oé maior que zero
 			if(directions[index].distance > 0.0d) {
 				this.botDirection = directions[index];
 				break;
 			}
 		}
-		
+		// Vira o robô para a orientação selecionada
 		turnRight(normalRelativeAngleDegrees(this.botDirection.angle - getHeading()));
 		
 	}
 	
+	// Executa a movimentação do robô
 	public void move() {
+		// Se a distância para a borda à frente for maior que zero...
 		if(this.botDirection.distance > 0.0d) {
+			// Caso a distância for maior que 100 define que será percorrida 100 senão o valor que fala para o fim da arena
 			double distance = (this.botDirection.distance > 100) ? 100 : this.botDirection.distance;
 			ahead(distance);
+			// Subtrai o valor percorrido da distância
 			this.botDirection.distance -= distance;
 		} else {
+			// Caso a distância para a borda à frente for zero muda a direção
 			this.changeDirection();
 		}
 	}
 	
+	// Movimenta o canhão
 	public void turnGun() {
 		if((getX() == this.rightLine && this.botDirection.direction == "TO_TOP") || (getX() == this.leftLine && this.botDirection.direction == "TO_BOTTON") || (getY() == this.topLine && this.botDirection.direction == "TO_LEFT") || (getY() == this.bottonLine && this.botDirection.direction == "TO_RIGHT")){
 			turnGunRight(-180);
