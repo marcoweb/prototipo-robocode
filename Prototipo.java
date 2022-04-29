@@ -76,10 +76,10 @@ public class Prototipo extends AdvancedRobot
 	}
 	
 	public void turnGun() {
-		if((getX() == this.rightLine && this.botDirection.direction == "TO_TOP") || (getX() == this.leftLine && this.botDirection.direction == "TO_BOTTON")){
+		if((getX() == this.rightLine && this.botDirection.direction == "TO_TOP") || (getX() == this.leftLine && this.botDirection.direction == "TO_BOTTON") || (getY() == this.topLine && this.botDirection.direction == "TO_LEFT") || (getY() == this.bottonLine && this.botDirection.direction == "TO_RIGHT")){
 			turnGunRight(-180);
 			turnGunRight(180);
-		} else if((getX() == this.rightLine && this.botDirection.direction == "TO_BOTTON") || (getX() == this.leftLine && this.botDirection.direction == "TO_BOTTON")) {
+		} else {
 			turnGunRight(180);
 			turnGunRight(-180);
 		}
