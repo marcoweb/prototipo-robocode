@@ -12,15 +12,18 @@ public class Prototipo extends AdvancedRobot
 {
 
 	private enum DirectionEnum {
-		TO_TOP(0),
-		TO_RIGHT(90),
-		TO_BOTTON(180),
-		TO_LEFT(270);
+		TO_TOP("TO_TOP", 0),
+		TO_RIGHT("TO_RIGHT", 90),
+		TO_BOTTON("TO_BOTTON", 180),
+		TO_LEFT("TO_LEFT", 270);
+
+		public final String direction;		
+		public final int angle;
+		public double distance;
 		
-		public int value;
-		
-		DirectionEnum(int value) {
-			this.value = value;
+		DirectionEnum(String direction, int angle) {
+			this.direction = direction;
+			this.angle = angle;
 		}
 	}
 	
@@ -30,30 +33,56 @@ public class Prototipo extends AdvancedRobot
 	private double rightLine;
 	private DirectionEnum botDirection;
 	
-	public void changeDirection(boolean ignoreActualDirection) {
-		double toTop = this.topLine - getY();
-		double toBotton = getY() - this.bottonLine;
-		double toLeft = getX() - this.leftLine;
-		double toRight = this.rightLine - getX();
+	public void changeDirection() {
 		
-		if(!(ignoreActualDirection && botDirection.equals(DirectionEnum.TO_TOP)) && (toTop < toBotton && toTop < toLeft && toTop < toRight)) {
-			this.botDirection = DirectionEnum.TO_TOP;
-			turnRight(normalRelativeAngleDegrees(this.botDirection.value - getHeading()));
-		} else if(!(ignoreActualDirection && botDirection.equals(DirectionEnum.TO_BOTTON)) && (toBotton < toTop && toBotton < toLeft && toBotton < toRight)) {
-			this.botDirection = DirectionEnum.TO_BOTTON;
-			turnRight(normalRelativeAngleDegrees(this.botDirection.value - getHeading()));
-		} else if(!(ignoreActualDirection && botDirection.equals(DirectionEnum.TO_LEFT)) && (toLeft < toTop && toLeft < toBotton && toLeft < toRight)) {
-			this.botDirection = DirectionEnum.TO_LEFT;
-			turnRight(normalRelativeAngleDegrees(this.botDirection.value - getHeading()));
-		} else if(!(ignoreActualDirection && botDirection.equals(DirectionEnum.TO_RIGHT)) && (toRight < toTop && toRight < toBotton && toRight < toLeft)) {
-			this.botDirection = DirectionEnum.TO_RIGHT;
-			turnRight(normalRelativeAngleDegrees(this.botDirection.value - getHeading()));
+		DirectionEnum[] directions = {DirectionEnum.TO_TOP, DirectionEnum.TO_BOTTON, DirectionEnum.TO_LEFT, DirectionEnum.TO_RIGHT};
+		directions[0].distance = this.topLine - getY();
+		directions[1].distance = getY() - this.bottonLine;
+		directions[2].distance = getX() - this.leftLine;
+		directions[3].distance = this.rightLine - getX();
+		
+		for(int index = 0;index < directions.length - 1;index++) {
+			if(directions[index].distance > directions[index + 1].distance) {
+				DirectionEnum temp = directions[index];
+				directions[index] = directions[index + 1];
+				directions[index + 1] = temp;
+				index = -1;
+			}
 		}
 		
-		out.println("TO_TOP: " + toTop);
-		out.println("TO_BOTTON: " + toBotton);
-		out.println("TO_LEFT: " + toLeft);
-		out.println("TO_RIGHT: " + toRight);
+		for(int index = 0;index < directions.length;index++) {
+			out.println(directions[index].direction + " : " + directions[index].distance);
+		}
+		
+		for(int index = 0;index < directions.length;index++) {
+			if(directions[index].distance > 0.0d) {
+				this.botDirection = directions[index];
+				break;
+			}
+		}
+		
+		turnRight(normalRelativeAngleDegrees(this.botDirection.angle - getHeading()));
+		
+	}
+	
+	public void move() {
+		if(this.botDirection.distance > 0.0d) {
+			double distance = (this.botDirection.distance > 100) ? 100 : this.botDirection.distance;
+			ahead(distance);
+			this.botDirection.distance -= distance;
+		} else {
+			this.changeDirection();
+		}
+	}
+	
+	public void turnGun() {
+		if((getX() == this.rightLine && this.botDirection.direction == "TO_TOP") || (getX() == this.leftLine && this.botDirection.direction == "TO_BOTTON")){
+			turnGunRight(-180);
+			turnGunRight(180);
+		} else if((getX() == this.rightLine && this.botDirection.direction == "TO_BOTTON") || (getX() == this.leftLine && this.botDirection.direction == "TO_BOTTON")) {
+			turnGunRight(180);
+			turnGunRight(-180);
+		}
 	}
 	
 	/**
@@ -64,20 +93,12 @@ public class Prototipo extends AdvancedRobot
 		this.bottonLine = getHeight() + 2;
 		this.rightLine = getBattleFieldWidth() - (getWidth() + 2);
 		this.leftLine = getWidth() + 2;
-		
-		out.println("TOP: " + this.topLine);
-		out.println("BOTTON: " + this.bottonLine);
-		out.println("LEFT: " + this.leftLine);
-		out.println("RIGHT: " + this.rightLine);
 	
-		this.changeDirection(false);		
+		this.changeDirection();
 
 		while(true) {
-			// Replace the next 4 lines with any behavior you would like
-			//ahead(100);
-			//turnGunRight(360);
-			//back(100);
-			//turnGunRight(360);
+			move();
+			turnGun();
 		}
 	}
 
